@@ -48,6 +48,11 @@ namespace PrimeTool
             return result;
         }
 
+        public static Task<List<long>> GetPrimesSequentialAsync(long first, long last)
+        {
+            return Task.Run<List<long>>(() => GetPrimesSequential(first, last));
+        }
+
         public static List<long> GetPrimesParallel(long first, long last)
         {
             var lockObject = new object();
@@ -74,6 +79,11 @@ namespace PrimeTool
                 }
             );
             return result.OrderBy(s => s).ToList();
+        }
+
+        public static Task<List<long>> GetPrimesParallelAsync(long first, long last)
+        {
+            return Task.Run<List<long>>(() => GetPrimesParallel(first, last));
         }
     }
 }
