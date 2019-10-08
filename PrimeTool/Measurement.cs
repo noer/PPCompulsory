@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace PrimeTool
 {
@@ -11,31 +8,46 @@ namespace PrimeTool
     {
         public Measurement()
         {
-            //TestCorrectness();
-            
+            // Things seem to be faster if the code has been running once already.
+            // Provides better consistency in the timings
             WarmUp();
-            Console.WriteLine("Prime numbers Sequential");
-            MeasureTime(new Action(() => PrimeTool.GetPrimesSequential(1_000_000, 1_002_000)));
 
-            Console.WriteLine("Prime numbers Parallel");
-            MeasureTime(new Action(() => PrimeTool.GetPrimesParallel(1_000_000, 1_002_000)));
+            Console.WriteLine("Check for correctness. Prints numbers from both Sequential and Parallel methods");
+            CheckCorrectness();
+        
+            TestRange(1, 20_000);
+            TestRange(1, 1_000_000);
+            TestRange(1, 10_000_000);
+            TestRange(1_000_000, 2_000_000);
+            TestRange(10_000_000, 20_000_000);
         }
 
-        public void TestCorrectness()
+        public void TestRange(long first, long last)
         {
-            var s = PrimeTool.GetPrimesSequential(1, 1_000);
-            var p = PrimeTool.GetPrimesParallel(1, 1_000);
-            
+            Console.WriteLine("Testing range {0} - {1}", first, last);
+            Console.Write("  Sequential:");
+            MeasureTime(new Action(() => PrimeTool.GetPrimesSequential(first, last)));
+            Console.Write("  Parallel:  ");
+            MeasureTime(new Action(() => PrimeTool.GetPrimesParallel(first, last)));
+            Console.WriteLine();
+        }
+        
+        public void CheckCorrectness()
+        {
+            var s = PrimeTool.GetPrimesSequential(1, 40);
+            var p = PrimeTool.GetPrimesParallel(1, 40);
+
             for (int i = 0; i < s.Count; i++)
             {
-                Console.WriteLine("{0:F0}, {1:F0}", s[i], p[i]);
+                Console.WriteLine("{0} == {1}", s[i], p[i]);
             }
+            Console.WriteLine();
         }
 
-        public void WarmUp()
+        public async void WarmUp()
         {
             var s = PrimeTool.GetPrimesSequential(1, 5);
-            var p = PrimeTool.GetPrimesParallel(1, 5);
+            var p = await PrimeTool.GetPrimesParallelAsync(1, 5);
         }
 
         private void MeasureTime(Action ac)
@@ -43,7 +55,7 @@ namespace PrimeTool
             var sw = Stopwatch.StartNew();
             ac.Invoke();
             sw.Stop();
-            Console.WriteLine("  Elapsed time: {0:F5}", sw.ElapsedMilliseconds / 1000d);
+            Console.WriteLine("  Elapsed time: {0:F3}", sw.ElapsedMilliseconds / 1000.0);
         }
     }
 }
